@@ -30,18 +30,13 @@ RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
 # Agent CLIs Installation
 # =============================================================================
 
-# OpenCode - Go-based AI coding assistant
+# OpenCode - AI coding assistant
 # https://opencode.ai
-# Downloads pre-built binary for the current architecture
+RUN npm install -g opencode-ai \
+    && npm cache clean --force
+
+# Architecture argument for binary downloads
 ARG TARGETARCH
-RUN set -eux; \
-    case "${TARGETARCH}" in \
-        amd64) OPENCODE_ARCH="amd64" ;; \
-        arm64) OPENCODE_ARCH="arm64" ;; \
-        *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;; \
-    esac; \
-    curl -fsSL -o /usr/local/bin/opencode "https://github.com/opencode-ai/opencode/releases/latest/download/opencode-linux-${OPENCODE_ARCH}" \
-    && chmod +x /usr/local/bin/opencode
 
 # Claude Code - Anthropic's AI coding assistant
 # https://docs.anthropic.com/claude-code
