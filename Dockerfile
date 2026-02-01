@@ -40,9 +40,8 @@ RUN set -eux; \
         arm64) OPENCODE_ARCH="arm64" ;; \
         *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;; \
     esac; \
-    curl -fsSL "https://github.com/opencode-ai/opencode/releases/latest/download/opencode-linux-${OPENCODE_ARCH}" -o /usr/local/bin/opencode \
-    && chmod +x /usr/local/bin/opencode \
-    || echo "OpenCode download failed, trying alternative..."
+    curl -fsSL -o /usr/local/bin/opencode "https://github.com/opencode-ai/opencode/releases/latest/download/opencode-linux-${OPENCODE_ARCH}" \
+    && chmod +x /usr/local/bin/opencode
 
 # Claude Code - Anthropic's AI coding assistant
 # https://docs.anthropic.com/claude-code
@@ -57,7 +56,7 @@ RUN set -eux; \
         arm64) GOOSE_ARCH="aarch64-unknown-linux-gnu" ;; \
         *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;; \
     esac; \
-    curl -fsSL "https://github.com/block/goose/releases/latest/download/goose-${GOOSE_ARCH}.tar.bz2" -o /tmp/goose.tar.bz2 \
+    curl -fsSL -o /tmp/goose.tar.bz2 "https://github.com/block/goose/releases/latest/download/goose-${GOOSE_ARCH}.tar.bz2" \
     && tar -xjf /tmp/goose.tar.bz2 -C /tmp \
     && mv /tmp/goose /usr/local/bin/goose \
     && chmod +x /usr/local/bin/goose \
@@ -70,13 +69,9 @@ RUN npm install -g @openai/codex \
 
 # Cursor CLI - Cursor's AI agent
 # https://cursor.com/cli
-# Note: Cursor CLI requires interactive setup, may not work in headless Docker
-RUN curl https://cursor.com/install -fsSL | bash \
-    && if [ -f /root/.local/bin/agent ]; then \
-         mv /root/.local/bin/agent /usr/local/bin/cursor-agent \
-         && chmod +x /usr/local/bin/cursor-agent; \
-       fi \
-    || echo "Cursor CLI installation skipped (may require interactive setup)"
+RUN curl -fsSL https://cursor.com/install | bash \
+    && mv /root/.local/bin/agent /usr/local/bin/cursor-agent \
+    && chmod +x /usr/local/bin/cursor-agent
 
 # =============================================================================
 # Cleanup and finalization
