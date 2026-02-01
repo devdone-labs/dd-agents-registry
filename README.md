@@ -10,7 +10,7 @@ Minimal Docker image containing AI coding agent CLIs for use in sandboxed develo
 | [Claude Code](https://docs.anthropic.com/claude-code) | `claude` | Anthropic's AI coding assistant |
 | [Goose](https://github.com/block/goose) | `goose` | AI developer agent by Block |
 | [Codex](https://github.com/openai/codex) | `codex` | OpenAI's coding assistant |
-| [Cursor CLI](https://cursor.com/cli) | `agent` | Cursor's AI agent |
+| [Cursor CLI](https://cursor.com/cli) | `cursor-agent` | Cursor's AI agent |
 
 ## Quick Start
 
@@ -36,7 +36,7 @@ docker run -it --rm -v $(pwd):/workspace ghcr.io/devdone-labs/dd-agents:latest g
 docker run -it --rm -v $(pwd):/workspace ghcr.io/devdone-labs/dd-agents:latest codex
 
 # Run Cursor CLI
-docker run -it --rm -v $(pwd):/workspace ghcr.io/devdone-labs/dd-agents:latest agent
+docker run -it --rm -v $(pwd):/workspace ghcr.io/devdone-labs/dd-agents:latest cursor-agent
 ```
 
 ### With API Keys
@@ -84,7 +84,7 @@ docker run --rm dd-agents:local opencode --version
 docker run --rm dd-agents:local claude --version
 docker run --rm dd-agents:local goose --version
 docker run --rm dd-agents:local codex --version
-docker run --rm dd-agents:local agent --version
+docker run --rm dd-agents:local cursor-agent --version
 ```
 
 ## CI/CD
