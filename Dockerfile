@@ -11,13 +11,14 @@ LABEL org.opencontainers.image.licenses="MIT"
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Base dependencies (added bzip2 for Goose binary extraction)
+# Base dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
     git \
     unzip \
     bzip2 \
+    libxcb1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js LTS (required for Claude Code, Codex)
