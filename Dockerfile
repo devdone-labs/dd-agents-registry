@@ -49,12 +49,19 @@ RUN set -eux; \
 RUN npm install -g @anthropic-ai/claude-code \
     && npm cache clean --force
 
-# Goose - AI developer agent (using official install script)
+# Goose - AI developer agent (direct binary download)
 # https://github.com/block/goose
-# CONFIGURE=false skips interactive prompts
-RUN curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash \
-    && mv /root/.local/bin/goose /usr/local/bin/goose 2>/dev/null || true \
-    && chmod +x /usr/local/bin/goose
+RUN set -eux; \
+    case "${TARGETARCH}" in \
+        amd64) GOOSE_ARCH="x86_64-unknown-linux-gnu" ;; \
+        arm64) GOOSE_ARCH="aarch64-unknown-linux-gnu" ;; \
+        *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;; \
+    esac; \
+    curl -fsSL "https://github.com/block/goose/releases/latest/download/goose-${GOOSE_ARCH}.tar.bz2" -o /tmp/goose.tar.bz2 \
+    && tar -xjf /tmp/goose.tar.bz2 -C /tmp \
+    && mv /tmp/goose /usr/local/bin/goose \
+    && chmod +x /usr/local/bin/goose \
+    && rm -rf /tmp/goose.tar.bz2
 
 # Codex - OpenAI's coding assistant
 # https://github.com/openai/codex
