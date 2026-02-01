@@ -49,19 +49,12 @@ RUN set -eux; \
 RUN npm install -g @anthropic-ai/claude-code \
     && npm cache clean --force
 
-# Goose - AI developer agent (pre-built binary, no Python required!)
+# Goose - AI developer agent (using official install script)
 # https://github.com/block/goose
-RUN set -eux; \
-    case "${TARGETARCH}" in \
-        amd64) GOOSE_ARCH="x86_64-unknown-linux-gnu" ;; \
-        arm64) GOOSE_ARCH="aarch64-unknown-linux-gnu" ;; \
-        *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;; \
-    esac; \
-    curl -fsSL "https://github.com/block/goose/releases/download/stable/goose-${GOOSE_ARCH}.tar.bz2" -o /tmp/goose.tar.bz2 \
-    && tar -xjf /tmp/goose.tar.bz2 -C /tmp \
-    && mv /tmp/goose /usr/local/bin/goose \
-    && chmod +x /usr/local/bin/goose \
-    && rm -rf /tmp/goose.tar.bz2
+# CONFIGURE=false skips interactive prompts
+RUN curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash \
+    && mv /root/.local/bin/goose /usr/local/bin/goose 2>/dev/null || true \
+    && chmod +x /usr/local/bin/goose
 
 # Codex - OpenAI's coding assistant
 # https://github.com/openai/codex
@@ -90,13 +83,19 @@ RUN useradd -m -s /bin/bash agentuser \
 # Set working directory
 WORKDIR /workspace
 
-# Verify installations (informational only, won't fail build)
-RUN echo "=== Installed Agents ===" \
-    && (opencode --version 2>/dev/null && echo "OpenCode: OK" || echo "OpenCode: not available") \
-    && (claude --version 2>/dev/null && echo "Claude Code: OK" || echo "Claude Code: not available") \
-    && (goose --version 2>/dev/null && echo "Goose: OK" || echo "Goose: not available") \
-    && (codex --version 2>/dev/null && echo "Codex: OK" || echo "Codex: not available") \
-    && (cursor-agent --version 2>/dev/null && echo "Cursor CLI: OK" || echo "Cursor CLI: not available (may need interactive setup)")
+# Verify installations (will FAIL build if any agent is missing)
+RUN echo "=== Verifying Installed Agents ===" \
+    && opencode --version \
+    && echo "OpenCode: OK" \
+    && claude --version \
+    && echo "Claude Code: OK" \
+    && goose --version \
+    && echo "Goose: OK" \
+    && codex --version \
+    && echo "Codex: OK" \
+    && cursor-agent --version \
+    && echo "Cursor CLI: OK" \
+    && echo "=== All agents verified successfully ==="
 
 # Default to non-root user (can be overridden)
 USER agentuser
