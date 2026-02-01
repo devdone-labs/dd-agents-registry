@@ -1,0 +1,145 @@
+# Goose Native Toolkit for Shared Skills
+# Copy to ~/.config/goose/toolkits/shared-skills.yaml
+
+name: shared-skills
+version: 1.0.0
+description: Native toolkit wrapper for shared skills
+
+requires:
+  - bash
+  - node >= 18
+
+tools:
+  # Deploy Skill
+  - name: shared_deploy
+    description: Deploy application to target environment
+    parameters:
+      environment:
+        type: string
+        description: Target environment (dev, staging, prod)
+        required: true
+        enum:
+          - dev
+          - staging
+          - prod
+      dry_run:
+        type: boolean
+        description: Simulate deployment without making changes
+        default: false
+      version:
+        type: string
+        description: Version to deploy
+        default: latest
+    command: |
+      #!/bin/bash
+      set -e
+      SKILLS_DIR="${GOOSE_SKILLS_DIR:-./skills}"
+      
+      echo "=== Shared Skills: Deploy ==="
+      bash "$SKILLS_DIR/shared/scripts/deploy-validate.sh" "{{environment}}"
+      bash "$SKILLS_DIR/shared/scripts/deploy-build.sh" --env="{{environment}}" --version="{{version}}"
+      
+      if [ "{{dry_run}}" != "true" ]; then
+        bash "$SKILLS_DIR/shared/scripts/deploy-execute.sh" --env="{{environment}}"
+      else
+        echo "[DRY RUN] Deployment simulated"
+      fi
+
+  # Test Skill
+  - name: shared_test
+    description: Run test suite with configurable options
+    parameters:
+      type:
+        type: string
+        description: Type of tests to run
+        default: all
+        enum:
+          - unit
+          - integration
+          - e2e
+          - all
+      coverage:
+        type: boolean
+        description: Generate coverage report
+        default: false
+      pattern:
+        type: string
+        description: Test file pattern
+        required: false
+    command: |
+      #!/bin/bash
+      set -e
+      SKILLS_DIR="${GOOSE_SKILLS_DIR:-./skills}"
+      
+      echo "=== Shared Skills: Test ==="
+      CMD="bash $SKILLS_DIR/shared/scripts/test-run.sh --type={{type}}"
+      
+      if [ "{{coverage}}" = "true" ]; then
+        CMD="$CMD --coverage"
+      fi
+      
+      if [ -n "{{pattern}}" ]; then
+        CMD="$CMD --pattern={{pattern}}"
+      fi
+      
+      eval $CMD
+
+  # Lint Skill
+  - name: shared_lint
+    description: Run code linters and static analysis
+    parameters:
+      fix:
+        type: boolean
+        description: Auto-fix issues
+        default: false
+      paths:
+        type: string
+        description: Comma-separated paths to lint
+        required: false
+    command: |
+      #!/bin/bash
+      set -e
+      SKILLS_DIR="${GOOSE_SKILLS_DIR:-./skills}"
+      
+      echo "=== Shared Skills: Lint ==="
+      CMD="bash $SKILLS_DIR/shared/scripts/lint-run.sh"
+      
+      if [ "{{fix}}" = "true" ]; then
+        CMD="$CMD --fix"
+      fi
+      
+      if [ -n "{{paths}}" ]; then
+        CMD="$CMD --paths={{paths}}"
+      fi
+      
+      eval $CMD
+
+  # Format Skill
+  - name: shared_format
+    description: Format code according to project standards
+    parameters:
+      check:
+        type: boolean
+        description: Check without making changes
+        default: false
+      paths:
+        type: string
+        description: Comma-separated paths to format
+        required: false
+    command: |
+      #!/bin/bash
+      set -e
+      SKILLS_DIR="${GOOSE_SKILLS_DIR:-./skills}"
+      
+      echo "=== Shared Skills: Format ==="
+      CMD="bash $SKILLS_DIR/shared/scripts/format-run.sh"
+      
+      if [ "{{check}}" = "true" ]; then
+        CMD="$CMD --check"
+      fi
+      
+      if [ -n "{{paths}}" ]; then
+        CMD="$CMD --paths={{paths}}"
+      fi
+      
+      eval $CMD

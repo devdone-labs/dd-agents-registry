@@ -315,6 +315,30 @@ server.start();
 
 ---
 
+## Implementation
+
+See the `/skills` directory for a complete implementation:
+
+```
+skills/
+├── core/                    # Universal skill definitions
+│   ├── deploy/skill.yaml
+│   ├── test/skill.yaml
+│   ├── lint/skill.yaml
+│   └── format/skill.yaml
+├── integrations/            # Per-agent adapters
+│   ├── claude-code/         # Full: MCP + CLAUDE.md
+│   ├── goose/               # Full: MCP + toolkit
+│   ├── codex/               # Limited: MCP + AGENTS.md
+│   ├── opencode/            # Limited: config + instructions
+│   └── cursor/              # Minimal: .cursorrules only
+└── shared/
+    ├── mcp-server/          # Universal MCP server
+    └── scripts/             # Shared executable scripts
+```
+
+---
+
 ## Appendix: Skill Configuration Examples
 
 ### Claude Code - MCP Server Config

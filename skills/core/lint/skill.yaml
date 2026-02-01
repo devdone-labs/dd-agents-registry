@@ -1,0 +1,56 @@
+# Lint Skill Definition
+# Universal format adapted by each agent integration
+
+name: lint
+version: 1.0.0
+description: Run code linters and static analysis
+
+inputs:
+  fix:
+    type: boolean
+    description: Automatically fix issues where possible
+    default: false
+  paths:
+    type: array
+    description: Specific paths to lint
+    items:
+      type: string
+    required: false
+  config:
+    type: string
+    description: Path to linter config file
+    required: false
+
+steps:
+  - name: detect_language
+    description: Detect project languages
+    command: ${SKILLS_DIR}/shared/scripts/lint-detect.sh
+    
+  - name: run_linters
+    description: Execute appropriate linters
+    command: ${SKILLS_DIR}/shared/scripts/lint-run.sh
+    args:
+      - --fix=${fix}
+      - --paths=${paths}
+      - --config=${config}
+
+outputs:
+  errors:
+    type: integer
+    description: Number of lint errors
+  warnings:
+    type: integer
+    description: Number of lint warnings
+  fixed:
+    type: integer
+    description: Number of auto-fixed issues
+  files_checked:
+    type: integer
+    description: Number of files checked
+
+agent_support:
+  claude_code: full
+  goose: full
+  codex: limited
+  opencode: limited
+  cursor: minimal

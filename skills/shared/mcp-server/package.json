@@ -1,0 +1,31 @@
+{
+  "name": "@dd-agents/shared-skills-mcp",
+  "version": "1.0.0",
+  "description": "Shared MCP server for AI coding agent skills",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "skills-mcp": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "yaml": "^2.3.0"
+  },
+  "keywords": [
+    "mcp",
+    "ai-agent",
+    "skills",
+    "claude-code",
+    "goose",
+    "codex"
+  ],
+  "author": "DD Agents",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
