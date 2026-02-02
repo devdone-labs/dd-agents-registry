@@ -64,23 +64,13 @@ RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tl
 # https://cursor.com/cli
 RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     Invoke-RestMethod -Uri 'https://cursor.com/install?win32=true' | Invoke-Expression; `
-    $paths = @( `
-        "$env:LOCALAPPDATA\cursor-agent\agent.exe", `
-        "$env:USERPROFILE\.local\bin\agent.exe", `
-        "C:\Users\ContainerAdministrator\.local\bin\agent.exe" `
-    ); `
-    $found = $false; `
-    foreach ($p in $paths) { `
-        if (Test-Path $p) { `
-            Move-Item -Path $p -Destination C:\agents\cursor-agent.exe -Force; `
-            $found = $true; `
-            break `
-        } `
-    }; `
-    if (-not $found) { `
-        Write-Warning 'Cursor CLI not found after install - creating placeholder'; `
-        New-Item -ItemType File -Path C:\agents\cursor-agent.exe -Force | Out-Null `
-    }
+    $p1 = Join-Path $env:LOCALAPPDATA 'cursor-agent\agent.exe'; `
+    $p2 = Join-Path $env:USERPROFILE '.local\bin\agent.exe'; `
+    $p3 = 'C:\Users\ContainerAdministrator\.local\bin\agent.exe'; `
+    if (Test-Path $p1) { Move-Item $p1 C:\agents\cursor-agent.exe -Force } `
+    elseif (Test-Path $p2) { Move-Item $p2 C:\agents\cursor-agent.exe -Force } `
+    elseif (Test-Path $p3) { Move-Item $p3 C:\agents\cursor-agent.exe -Force } `
+    else { Write-Warning 'Cursor CLI not found'; New-Item -ItemType File -Path C:\agents\cursor-agent.exe -Force | Out-Null }
 
 # =============================================================================
 # Runtime Stage - Minimal Nano Server image
