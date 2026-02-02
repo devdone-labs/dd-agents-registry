@@ -1,8 +1,8 @@
+# escape=`
+
 # Minimal Windows Docker image with agent CLIs for sandboxes
 # Base: Windows Server Core (build) -> Nano Server (runtime)
 # Agents: OpenCode, Claude Code, Goose, Codex, Cursor CLI
-
-# escape=`
 
 # =============================================================================
 # Build Stage - Use Server Core for PowerShell and build tools
