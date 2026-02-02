@@ -1,0 +1,53 @@
+# Format Skill Definition
+# Universal format adapted by each agent integration
+
+name: format
+version: 1.0.0
+description: Format code according to project standards
+
+inputs:
+  check:
+    type: boolean
+    description: Check formatting without making changes
+    default: false
+  paths:
+    type: array
+    description: Specific paths to format
+    items:
+      type: string
+    required: false
+  config:
+    type: string
+    description: Path to formatter config file
+    required: false
+
+steps:
+  - name: detect_formatters
+    description: Detect available formatters
+    command: ${SKILLS_DIR}/shared/scripts/format-detect.sh
+    
+  - name: run_formatters
+    description: Execute formatters
+    command: ${SKILLS_DIR}/shared/scripts/format-run.sh
+    args:
+      - --check=${check}
+      - --paths=${paths}
+      - --config=${config}
+
+outputs:
+  formatted:
+    type: integer
+    description: Number of files formatted
+  unchanged:
+    type: integer
+    description: Number of files unchanged
+  check_passed:
+    type: boolean
+    description: Whether format check passed (if check=true)
+
+agent_support:
+  claude_code: full
+  goose: full
+  codex: limited
+  opencode: limited
+  cursor: minimal

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://opencode.ai/schemas/config.json",
+  "version": "1.0.0",
+  
+  "mcp": {
+    "servers": {
+      "shared-skills": {
+        "command": "node",
+        "args": ["./skills/shared/mcp-server/index.js"],
+        "env": {
+          "NODE_ENV": "production"
+        }
+      }
+    }
+  },
+  
+  "instructions": [
+    "This project uses shared skills for common operations.",
+    "Use MCP tools when available: deploy, test, lint, format",
+    "If MCP is unavailable, use scripts in ./skills/shared/scripts/",
+    "Read INSTRUCTIONS.md for detailed skill documentation"
+  ],
+  
+  "model": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-20250514"
+  },
+  
+  "workspace": {
+    "include": [
+      "**/*.ts",
+      "**/*.js",
+      "**/*.py",
+      "**/*.go"
+    ],
+    "exclude": [
+      "node_modules",
+      ".git",
+      "dist",
+      "build"
+    ]
+  }
+}

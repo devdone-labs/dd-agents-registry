@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "shared-skills": {
+      "command": "node",
+      "args": ["./skills/shared/mcp-server/index.js"],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  },
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)"
+    ]
+  }
+}

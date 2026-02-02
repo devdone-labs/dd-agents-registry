@@ -1,0 +1,27 @@
+# Codex Configuration with Shared Skills MCP
+# Copy to ~/.codex/config.yaml or project .codex/config.yaml
+
+# MCP Server Configuration
+mcp:
+  servers:
+    shared-skills:
+      command: node
+      args:
+        - ./skills/shared/mcp-server/index.js
+      env:
+        NODE_ENV: production
+
+# Sandbox Configuration
+sandbox:
+  enabled: true
+  network: true
+  
+# Model Configuration
+model:
+  default: gpt-4o
+
+# Instructions
+instructions:
+  - Read AGENTS.md for available project skills
+  - Use MCP tools when available for skill execution
+  - Fall back to manual scripts if MCP is unavailable
