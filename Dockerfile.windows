@@ -11,51 +11,54 @@ FROM mcr.microsoft.com/windows/servercore:ltsc2022 AS builder
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
+# Create directories
+RUN New-Item -ItemType Directory -Force -Path C:\nodejs; `
+    New-Item -ItemType Directory -Force -Path C:\agents; `
+    New-Item -ItemType Directory -Force -Path C:\agents\npm-global
+
 # Install Node.js LTS (required for Claude Code, Codex, OpenCode)
 ENV NODE_VERSION=20.11.1
-RUN Invoke-WebRequest -Uri "https://nodejs.org/dist/v$env:NODE_VERSION/node-v$env:NODE_VERSION-win-x64.zip" -OutFile nodejs.zip; `
-    Expand-Archive nodejs.zip -DestinationPath C:\; `
-    Rename-Item "C:\node-v$env:NODE_VERSION-win-x64" C:\nodejs; `
-    Remove-Item nodejs.zip -Force
+RUN Invoke-WebRequest -Uri "https://nodejs.org/dist/v$env:NODE_VERSION/node-v$env:NODE_VERSION-win-x64.zip" -OutFile C:\nodejs.zip; `
+    Expand-Archive C:\nodejs.zip -DestinationPath C:\; `
+    Move-Item -Path "C:\node-v$env:NODE_VERSION-win-x64\*" -Destination C:\nodejs -Force; `
+    Remove-Item "C:\node-v$env:NODE_VERSION-win-x64" -Force; `
+    Remove-Item C:\nodejs.zip -Force
 
-# Add Node.js to PATH for build stage
-ENV PATH="C:\nodejs;C:\nodejs\node_modules\.bin;${PATH}"
-
-# Create app directory
-RUN New-Item -ItemType Directory -Force -Path C:\agents
-
-# Install npm packages globally to a specific location
-ENV NPM_CONFIG_PREFIX="C:\agents\npm-global"
-RUN npm config set prefix C:\agents\npm-global
+# Configure npm to install global packages in our agents directory
+RUN C:\nodejs\npm.cmd config set prefix C:\agents\npm-global
 
 # =============================================================================
-# Agent CLIs Installation
+# Agent CLIs Installation (using absolute paths)
 # =============================================================================
 
 # OpenCode - AI coding assistant
 # https://opencode.ai
-RUN npm install -g opencode-ai
+RUN C:\nodejs\npm.cmd install -g opencode-ai
 
 # Claude Code - Anthropic's AI coding assistant
 # https://docs.anthropic.com/claude-code
-RUN npm install -g @anthropic-ai/claude-code
+RUN C:\nodejs\npm.cmd install -g @anthropic-ai/claude-code
 
 # Codex - OpenAI's coding assistant
 # https://github.com/openai/codex
-RUN npm install -g @openai/codex
+RUN C:\nodejs\npm.cmd install -g @openai/codex
 
 # Goose - AI developer agent (direct binary download)
 # https://github.com/block/goose
-RUN Invoke-WebRequest -Uri "https://github.com/block/goose/releases/latest/download/goose-x86_64-pc-windows-msvc.zip" -OutFile goose.zip; `
-    Expand-Archive goose.zip -DestinationPath C:\agents; `
-    Remove-Item goose.zip -Force
+RUN Invoke-WebRequest -Uri "https://github.com/block/goose/releases/latest/download/goose-x86_64-pc-windows-msvc.zip" -OutFile C:\goose.zip; `
+    Expand-Archive C:\goose.zip -DestinationPath C:\agents; `
+    Remove-Item C:\goose.zip -Force
 
 # Cursor CLI - Cursor's AI agent
 # https://cursor.com/cli
-RUN Invoke-WebRequest -Uri "https://cursor.com/install.ps1" -OutFile install.ps1; `
-    .\install.ps1; `
-    Move-Item -Path "$env:LOCALAPPDATA\cursor-agent\agent.exe" -Destination "C:\agents\cursor-agent.exe" -Force; `
-    Remove-Item install.ps1 -Force
+RUN Invoke-WebRequest -Uri "https://cursor.com/install.ps1" -OutFile C:\install.ps1; `
+    & C:\install.ps1; `
+    if (Test-Path "$env:LOCALAPPDATA\cursor-agent\agent.exe") { `
+        Move-Item -Path "$env:LOCALAPPDATA\cursor-agent\agent.exe" -Destination C:\agents\cursor-agent.exe -Force `
+    } elseif (Test-Path "C:\Users\ContainerUser\.local\bin\agent.exe") { `
+        Move-Item -Path "C:\Users\ContainerUser\.local\bin\agent.exe" -Destination C:\agents\cursor-agent.exe -Force `
+    }; `
+    Remove-Item C:\install.ps1 -Force
 
 # =============================================================================
 # Runtime Stage - Minimal Nano Server image
@@ -68,7 +71,7 @@ COPY --from=builder C:\nodejs C:\nodejs
 # Copy installed agents
 COPY --from=builder C:\agents C:\agents
 
-# Set up PATH
+# Set up PATH using setx
 USER ContainerAdministrator
 RUN setx /M PATH "C:\nodejs;C:\agents\npm-global;C:\agents;%PATH%"
 USER ContainerUser
@@ -82,14 +85,19 @@ LABEL org.opencontainers.image.licenses="MIT"
 WORKDIR C:\workspace
 
 # Verify installations (will FAIL build if any agent is missing)
-RUN echo === Verifying Installed Agents === && `
-    C:\nodejs\node.exe --version && `
-    C:\agents\npm-global\opencode.cmd --version && echo OpenCode: OK && `
-    C:\agents\npm-global\claude.cmd --version && echo Claude Code: OK && `
-    C:\agents\goose.exe --version && echo Goose: OK && `
-    C:\agents\npm-global\codex.cmd --version && echo Codex: OK && `
-    C:\agents\cursor-agent.exe --version && echo Cursor CLI: OK && `
-    echo === All agents verified successfully ===
+SHELL ["cmd", "/S", "/C"]
+RUN C:\nodejs\node.exe --version && `
+    echo Node.js: OK && `
+    C:\agents\npm-global\opencode.cmd --version && `
+    echo OpenCode: OK && `
+    C:\agents\npm-global\claude.cmd --version && `
+    echo Claude Code: OK && `
+    C:\agents\goose.exe --version && `
+    echo Goose: OK && `
+    C:\agents\npm-global\codex.cmd --version && `
+    echo Codex: OK && `
+    C:\agents\cursor-agent.exe --version && `
+    echo Cursor CLI: OK
 
 # Default command - show available agents
 CMD ["cmd", "/c", "echo Available agents: opencode, claude, goose, codex, cursor-agent"]
