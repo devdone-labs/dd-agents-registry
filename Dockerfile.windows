@@ -62,21 +62,27 @@ RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tl
     }
 
 # Cursor CLI - Cursor's AI agent
+# Installs to ~/.local/bin/agent (or agent.exe on Windows)
 RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
     $installScript = Invoke-WebRequest -Uri 'https://cursor.com/install?win32=true' -UseBasicParsing; `
     Invoke-Expression $installScript.Content; `
     Start-Sleep -Seconds 2; `
-    $searchPaths = @($env:LOCALAPPDATA, $env:USERPROFILE, 'C:\Users\ContainerAdministrator'); `
-    $cursorExe = $null; `
-    foreach ($path in $searchPaths) { `
-        $cursorExe = Get-ChildItem -Path $path -Recurse -Filter 'agent.exe' -ErrorAction SilentlyContinue | Select-Object -First 1; `
-        if ($cursorExe) { break } `
-    }; `
-    if ($cursorExe) { `
-        Copy-Item $cursorExe.FullName C:\agents\cursor-agent.exe -Force; `
-        Write-Host "Cursor CLI installed: $($cursorExe.FullName)" `
+    Write-Host 'Searching for Cursor CLI binary...'; `
+    $expectedPath = Join-Path $env:USERPROFILE '.local\bin\agent.exe'; `
+    $expectedPathNoExt = Join-Path $env:USERPROFILE '.local\bin\agent'; `
+    Write-Host "Checking: $expectedPath"; `
+    if (Test-Path $expectedPath) { `
+        Copy-Item $expectedPath C:\agents\cursor-agent.exe -Force; `
+        Write-Host "Cursor CLI installed from: $expectedPath" `
+    } elseif (Test-Path $expectedPathNoExt) { `
+        Copy-Item $expectedPathNoExt C:\agents\cursor-agent.exe -Force; `
+        Write-Host "Cursor CLI installed from: $expectedPathNoExt" `
     } else { `
-        throw 'Cursor CLI installation failed - agent.exe not found' `
+        Write-Host 'Listing .local/bin contents:'; `
+        Get-ChildItem -Path (Join-Path $env:USERPROFILE '.local\bin') -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_.FullName }; `
+        Write-Host 'Searching entire user profile for agent*:'; `
+        Get-ChildItem -Path $env:USERPROFILE -Recurse -Filter 'agent*' -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_.FullName }; `
+        throw 'Cursor CLI installation failed - binary not found' `
     }
 
 # Verify all agents are installed in builder stage
