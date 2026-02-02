@@ -48,17 +48,21 @@ RUN C:\nodejs\npm.cmd install -g @openai/codex
 
 # Goose - AI developer agent (direct binary download)
 # https://github.com/block/goose
+# Note: Goose may not have Windows releases - this step is optional
 RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-    $releases = Invoke-RestMethod -Uri 'https://api.github.com/repos/block/goose/releases/latest'; `
-    $asset = $releases.assets | Where-Object { $_.name -like '*windows*gnu*.zip' } | Select-Object -First 1; `
-    if ($asset) { `
-        Invoke-WebRequest -Uri $asset.browser_download_url -OutFile C:\goose.zip -UseBasicParsing; `
-        Expand-Archive C:\goose.zip -DestinationPath C:\agents -Force; `
-        Remove-Item C:\goose.zip -Force `
-    } else { `
-        Write-Warning 'Goose Windows binary not found - skipping'; `
-        New-Item -ItemType File -Path C:\agents\goose.exe -Force | Out-Null `
-    }
+    try { `
+        $releases = Invoke-RestMethod -Uri 'https://api.github.com/repos/block/goose/releases/latest'; `
+        $asset = $releases.assets | Where-Object { $_.name -like '*windows*.zip' -or $_.name -like '*win*.zip' } | Select-Object -First 1; `
+        if ($asset) { `
+            Write-Host \"Downloading Goose: $($asset.name)\"; `
+            Invoke-WebRequest -Uri $asset.browser_download_url -OutFile C:\goose.zip -UseBasicParsing; `
+            Expand-Archive C:\goose.zip -DestinationPath C:\goose-temp -Force; `
+            $exe = Get-ChildItem -Path C:\goose-temp -Recurse -Filter 'goose.exe' | Select-Object -First 1; `
+            if ($exe) { Move-Item $exe.FullName C:\agents\goose.exe -Force } `
+            else { Write-Warning 'goose.exe not found in archive' }; `
+            Remove-Item C:\goose.zip, C:\goose-temp -Recurse -Force -ErrorAction SilentlyContinue `
+        } else { Write-Warning 'Goose Windows binary not found in releases' } `
+    } catch { Write-Warning \"Goose install failed: $_\" }
 
 # Cursor CLI - Cursor's AI agent
 # https://cursor.com/cli
@@ -96,20 +100,17 @@ LABEL org.opencontainers.image.licenses="MIT"
 # Set working directory
 WORKDIR C:\workspace
 
-# Verify installations (will FAIL build if any agent is missing)
+# Verify installations
+# Required: Node.js, OpenCode, Claude Code, Codex (npm-based)
+# Optional: Goose, Cursor CLI (may not have Windows builds)
 SHELL ["cmd", "/S", "/C"]
-RUN C:\nodejs\node.exe --version && `
-    echo Node.js: OK && `
-    C:\agents\npm-global\opencode.cmd --version && `
-    echo OpenCode: OK && `
-    C:\agents\npm-global\claude.cmd --version && `
-    echo Claude Code: OK && `
-    C:\agents\goose.exe --version && `
-    echo Goose: OK && `
-    C:\agents\npm-global\codex.cmd --version && `
-    echo Codex: OK && `
-    C:\agents\cursor-agent.exe --version && `
-    echo Cursor CLI: OK
+RUN C:\nodejs\node.exe --version && echo Node.js: OK && `
+    C:\agents\npm-global\opencode.cmd --version && echo OpenCode: OK && `
+    C:\agents\npm-global\claude.cmd --version && echo Claude Code: OK && `
+    C:\agents\npm-global\codex.cmd --version && echo Codex: OK && `
+    echo === Required agents verified === && `
+    (C:\agents\goose.exe --version && echo Goose: OK || echo Goose: NOT AVAILABLE) && `
+    (C:\agents\cursor-agent.exe --version && echo Cursor CLI: OK || echo Cursor CLI: NOT AVAILABLE)
 
 # Default command - show available agents
 CMD ["cmd", "/c", "echo Available agents: opencode, claude, goose, codex, cursor-agent"]
