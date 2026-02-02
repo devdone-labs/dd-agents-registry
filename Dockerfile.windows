@@ -48,9 +48,10 @@ RUN C:\nodejs\npm.cmd install -g @openai/codex
 
 # Goose - AI developer agent (direct binary download)
 # https://github.com/block/goose
-RUN Invoke-WebRequest -Uri "https://github.com/block/goose/releases/latest/download/goose-x86_64-pc-windows-msvc.zip" -OutFile C:\goose.zip; `
-    Expand-Archive C:\goose.zip -DestinationPath C:\agents; `
-    Remove-Item C:\goose.zip -Force
+RUN Invoke-WebRequest -Uri "https://github.com/block/goose/releases/download/stable/download_cli.ps1" -OutFile C:\download_goose.ps1; `
+    & C:\download_goose.ps1; `
+    Move-Item -Path "$env:USERPROFILE\.goose\bin\goose.exe" -Destination C:\agents\goose.exe -Force; `
+    Remove-Item C:\download_goose.ps1 -Force
 
 # Cursor CLI - Cursor's AI agent
 # https://cursor.com/cli
