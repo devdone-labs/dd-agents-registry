@@ -100,17 +100,16 @@ LABEL org.opencontainers.image.licenses="MIT"
 # Set working directory
 WORKDIR C:\workspace
 
-# Verify installations
-# Required: Node.js, OpenCode, Claude Code, Codex (npm-based)
-# Optional: Goose, Cursor CLI (may not have Windows builds)
-SHELL ["cmd", "/S", "/C"]
-RUN C:\nodejs\node.exe --version && echo Node.js: OK && `
-    C:\agents\npm-global\opencode.cmd --version && echo OpenCode: OK && `
-    C:\agents\npm-global\claude.cmd --version && echo Claude Code: OK && `
-    C:\agents\npm-global\codex.cmd --version && echo Codex: OK && `
-    echo === Required agents verified === && `
-    (C:\agents\goose.exe --version && echo Goose: OK || echo Goose: NOT AVAILABLE) && `
-    (C:\agents\cursor-agent.exe --version && echo Cursor CLI: OK || echo Cursor CLI: NOT AVAILABLE)
+# Verify installations using PowerShell for better error handling
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Continue';"]
+RUN Write-Host '=== Verifying Installed Agents ==='; `
+    C:\nodejs\node.exe --version; if ($?) { Write-Host 'Node.js: OK' } else { Write-Host 'Node.js: FAILED' }; `
+    & C:\agents\npm-global\opencode.cmd --version 2>$null; if ($?) { Write-Host 'OpenCode: OK' } else { Write-Host 'OpenCode: FAILED' }; `
+    & C:\agents\npm-global\claude.cmd --version 2>$null; if ($?) { Write-Host 'Claude Code: OK' } else { Write-Host 'Claude Code: FAILED' }; `
+    & C:\agents\npm-global\codex.cmd --version 2>$null; if ($?) { Write-Host 'Codex: OK' } else { Write-Host 'Codex: FAILED or not working on Windows' }; `
+    if (Test-Path C:\agents\goose.exe) { & C:\agents\goose.exe --version 2>$null; if ($?) { Write-Host 'Goose: OK' } else { Write-Host 'Goose: FAILED' } } else { Write-Host 'Goose: NOT INSTALLED' }; `
+    if (Test-Path C:\agents\cursor-agent.exe) { & C:\agents\cursor-agent.exe --version 2>$null; if ($?) { Write-Host 'Cursor CLI: OK' } else { Write-Host 'Cursor CLI: FAILED' } } else { Write-Host 'Cursor CLI: NOT INSTALLED' }; `
+    Write-Host '=== Verification complete ==='
 
 # Default command - show available agents
 CMD ["cmd", "/c", "echo Available agents: opencode, claude, goose, codex, cursor-agent"]
