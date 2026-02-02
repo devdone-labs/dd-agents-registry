@@ -24,8 +24,8 @@ RUN Invoke-WebRequest -Uri "https://nodejs.org/dist/v$env:NODE_VERSION/node-v$en
     Remove-Item "C:\node-v$env:NODE_VERSION-win-x64" -Force; `
     Remove-Item C:\nodejs.zip -Force
 
-# Add Node.js to PATH for npm postinstall scripts
-ENV PATH="C:\nodejs;C:\Windows\system32;C:\Windows"
+# Add Node.js to PATH for npm postinstall scripts (include PowerShell path)
+ENV PATH="C:\nodejs;C:\Windows\System32\WindowsPowerShell\v1.0;C:\Windows\system32;C:\Windows"
 
 # Configure npm to install global packages in our agents directory
 RUN C:\nodejs\npm.cmd config set prefix C:\agents\npm-global
