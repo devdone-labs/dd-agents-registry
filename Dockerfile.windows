@@ -48,10 +48,17 @@ RUN C:\nodejs\npm.cmd install -g @openai/codex
 
 # Goose - AI developer agent (direct binary download)
 # https://github.com/block/goose
-RUN Invoke-WebRequest -Uri "https://github.com/block/goose/releases/download/stable/download_cli.ps1" -OutFile C:\download_goose.ps1; `
-    & C:\download_goose.ps1; `
-    Move-Item -Path "$env:USERPROFILE\.goose\bin\goose.exe" -Destination C:\agents\goose.exe -Force; `
-    Remove-Item C:\download_goose.ps1 -Force
+RUN [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
+    $releases = Invoke-RestMethod -Uri 'https://api.github.com/repos/block/goose/releases/latest'; `
+    $asset = $releases.assets | Where-Object { $_.name -like '*windows*gnu*.zip' } | Select-Object -First 1; `
+    if ($asset) { `
+        Invoke-WebRequest -Uri $asset.browser_download_url -OutFile C:\goose.zip -UseBasicParsing; `
+        Expand-Archive C:\goose.zip -DestinationPath C:\agents -Force; `
+        Remove-Item C:\goose.zip -Force `
+    } else { `
+        Write-Warning 'Goose Windows binary not found - skipping'; `
+        New-Item -ItemType File -Path C:\agents\goose.exe -Force | Out-Null `
+    }
 
 # Cursor CLI - Cursor's AI agent
 # https://cursor.com/cli
