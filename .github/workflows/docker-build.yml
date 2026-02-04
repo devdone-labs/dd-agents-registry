@@ -94,13 +94,15 @@ jobs:
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
   # =============================================================================
-  # Windows Image Build (amd64 only)
+  # Windows Image Build (amd64 only) - Separate package for Windows containers
   # =============================================================================
   build-windows:
     runs-on: windows-2022
     permissions:
       contents: read
       packages: write
+    env:
+      WINDOWS_IMAGE_NAME: ${{ github.repository_owner }}/dd-agents-windows
 
     steps:
       - name: Checkout repository
@@ -118,11 +120,9 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          flavor: |
-            suffix=-windows
+          images: ${{ env.REGISTRY }}/${{ env.WINDOWS_IMAGE_NAME }}
           tags: |
-            # Set windows-latest tag for main branch
+            # Set latest tag for main branch
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             # Tag with version for releases
             type=semver,pattern={{version}}
@@ -136,7 +136,7 @@ jobs:
 
       - name: Build Windows Docker image
         run: |
-          docker build -f Dockerfile.windows -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:windows-build .
+          docker build -f Dockerfile.windows -t ${{ env.REGISTRY }}/${{ env.WINDOWS_IMAGE_NAME }}:windows-build .
 
       - name: Tag and push Windows Docker image
         if: github.event_name != 'pull_request'
@@ -144,7 +144,7 @@ jobs:
           $tags = "${{ steps.meta.outputs.tags }}" -split "`n"
           foreach ($tag in $tags) {
             if ($tag.Trim()) {
-              docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:windows-build $tag.Trim()
+              docker tag ${{ env.REGISTRY }}/${{ env.WINDOWS_IMAGE_NAME }}:windows-build $tag.Trim()
               docker push $tag.Trim()
             }
           }
@@ -155,7 +155,7 @@ jobs:
           echo "## Windows Docker Image Build Summary" >> $env:GITHUB_STEP_SUMMARY
           echo "" >> $env:GITHUB_STEP_SUMMARY
           echo "**Registry:** ``${{ env.REGISTRY }}``" >> $env:GITHUB_STEP_SUMMARY
-          echo "**Image:** ``${{ env.IMAGE_NAME }}``" >> $env:GITHUB_STEP_SUMMARY
+          echo "**Image:** ``${{ env.WINDOWS_IMAGE_NAME }}``" >> $env:GITHUB_STEP_SUMMARY
           echo "**Platform:** Windows Server 2022 LTSC (amd64)" >> $env:GITHUB_STEP_SUMMARY
           echo "" >> $env:GITHUB_STEP_SUMMARY
           echo "### Tags" >> $env:GITHUB_STEP_SUMMARY
@@ -165,6 +165,6 @@ jobs:
           echo "" >> $env:GITHUB_STEP_SUMMARY
           echo "### Pull Command" >> $env:GITHUB_STEP_SUMMARY
           echo "``````powershell" >> $env:GITHUB_STEP_SUMMARY
-          echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:windows-latest" >> $env:GITHUB_STEP_SUMMARY
+          echo "docker pull ${{ env.REGISTRY }}/${{ env.WINDOWS_IMAGE_NAME }}:latest" >> $env:GITHUB_STEP_SUMMARY
           echo "``````" >> $env:GITHUB_STEP_SUMMARY
         shell: pwsh
