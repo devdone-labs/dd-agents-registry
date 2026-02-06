@@ -48,26 +48,26 @@ docker run -it --rm -v $(pwd):/workspace ghcr.io/devdone-labs/dd-agents:latest c
 #### Pull the Image
 
 ```powershell
-docker pull ghcr.io/devdone-labs/dd-agents:windows-latest
+docker pull ghcr.io/devdone-labs/dd-agents-windows:latest
 ```
 
 #### Run an Agent
 
 ```powershell
 # Run OpenCode
-docker run -it --rm -v ${PWD}:C:\workspace ghcr.io/devdone-labs/dd-agents:windows-latest opencode
+docker run -it --rm -v ${PWD}:C:\workspace ghcr.io/devdone-labs/dd-agents-windows:latest opencode
 
 # Run Claude Code
-docker run -it --rm -v ${PWD}:C:\workspace ghcr.io/devdone-labs/dd-agents:windows-latest claude
+docker run -it --rm -v ${PWD}:C:\workspace ghcr.io/devdone-labs/dd-agents-windows:latest claude
 
 # Run Goose
-docker run -it --rm -v ${PWD}:C:\workspace ghcr.io/devdone-labs/dd-agents:windows-latest goose
+docker run -it --rm -v ${PWD}:C:\workspace ghcr.io/devdone-labs/dd-agents-windows:latest goose
 
 # Run Codex
-docker run -it --rm -v ${PWD}:C:\workspace ghcr.io/devdone-labs/dd-agents:windows-latest codex
+docker run -it --rm -v ${PWD}:C:\workspace ghcr.io/devdone-labs/dd-agents-windows:latest codex
 
 # Run Cursor CLI
-docker run -it --rm -v ${PWD}:C:\workspace ghcr.io/devdone-labs/dd-agents:windows-latest cursor-agent
+docker run -it --rm -v ${PWD}:C:\workspace ghcr.io/devdone-labs/dd-agents-windows:latest cursor-agent
 ```
 
 ### With API Keys
@@ -89,7 +89,7 @@ docker run -it --rm `
   -e ANTHROPIC_API_KEY=$env:ANTHROPIC_API_KEY `
   -e OPENAI_API_KEY=$env:OPENAI_API_KEY `
   -v ${PWD}:C:\workspace `
-  ghcr.io/devdone-labs/dd-agents:windows-latest claude
+  ghcr.io/devdone-labs/dd-agents-windows:latest claude
 ```
 
 ## Image Details
@@ -110,14 +110,14 @@ docker run -it --rm `
 
 - **Base:** Windows Nano Server LTSC 2022 (~100MB base)
 - **Platforms:** windows/amd64
-- **Registry:** `ghcr.io/devdone-labs/dd-agents`
+- **Registry:** `ghcr.io/devdone-labs/dd-agents-windows` (separate package)
 
 | Tag | Description |
 |-----|-------------|
-| `windows-latest` | Latest stable Windows build from main branch |
-| `windows-ltsc2022` | Windows Server 2022 LTSC build |
-| `v1.0.0-windows` | Specific version release (Windows) |
-| `<sha>-windows` | Specific commit SHA (Windows) |
+| `latest` | Latest stable Windows build from main branch |
+| `ltsc2022` | Windows Server 2022 LTSC build |
+| `v1.0.0` | Specific version release |
+| `<sha>` | Specific commit SHA |
 
 ## Runtime Installation
 
