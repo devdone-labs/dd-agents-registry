@@ -1,7 +1,19 @@
 # Minimal Docker image with agent CLIs for sandboxes
 # Base: Debian Bookworm Slim (~25MB)
 # Agents: OpenCode, Claude Code, Goose, Codex, Cursor CLI
+# Includes: agent-gateway HTTP server for persistent VM communication
 
+# =============================================================================
+# Stage 1: Build the agent-gateway Go binary
+# =============================================================================
+FROM golang:1.22-alpine AS gateway-builder
+WORKDIR /build
+COPY agent-gateway/ .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o agent-gateway .
+
+# =============================================================================
+# Stage 2: Main image
+# =============================================================================
 FROM debian:bookworm-slim
 
 LABEL org.opencontainers.image.source="https://github.com/devdone-labs/dd-agents-registry"
@@ -71,6 +83,11 @@ RUN curl -fsSL https://cursor.com/install | bash \
     && chmod +x /usr/local/bin/cursor-agent
 
 # =============================================================================
+# Agent Gateway (HTTP server for persistent VM communication)
+# =============================================================================
+COPY --from=gateway-builder /build/agent-gateway /usr/local/bin/agent-gateway
+
+# =============================================================================
 # Cleanup and finalization
 # =============================================================================
 
@@ -94,6 +111,8 @@ RUN echo "=== Verifying Installed Agents ===" \
     && echo "Codex: OK" \
     && cursor-agent --version \
     && echo "Cursor CLI: OK" \
+    && test -x /usr/local/bin/agent-gateway \
+    && echo "Agent Gateway: OK" \
     && echo "=== All agents verified successfully ==="
 
 # Default to non-root user (can be overridden)
