@@ -384,8 +384,21 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds)
 	log.Println("[agent-gateway] starting...")
 
-	// As PID 1 we must handle signals and reap zombies.
-	signal.Ignore(syscall.SIGCHLD)
+	// As PID 1 we must reap orphan children to avoid zombies.
+	// We do NOT ignore SIGCHLD because Go's exec.Cmd.Wait() uses waitpid()
+	// and ignoring SIGCHLD causes the kernel to auto-reap, making Wait() fail
+	// with "no child processes".
+	// Instead, start a goroutine that reaps any orphan processes.
+	go func() {
+		for {
+			var ws syscall.WaitStatus
+			pid, err := syscall.Wait4(-1, &ws, syscall.WNOHANG, nil)
+			if pid <= 0 || err != nil {
+				time.Sleep(1 * time.Second)
+			}
+		}
+	}()
+
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
 
