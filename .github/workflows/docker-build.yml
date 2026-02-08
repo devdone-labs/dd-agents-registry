@@ -58,6 +58,8 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
+            # Tag with branch name for feature branches
+            type=ref,event=branch
             # Tag with SHA for commits
             type=sha,prefix=
             # Custom tag from workflow_dispatch
