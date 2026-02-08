@@ -1,0 +1,59 @@
+# Goose Profiles with Shared Skills
+# Copy to ~/.config/goose/profiles.yaml
+
+# Default profile with shared skills via MCP
+default:
+  provider: anthropic
+  processor: claude-sonnet-4-20250514
+  accelerator: claude-sonnet-4-20250514
+  toolkits:
+    - name: developer
+      requires: {}
+  mcpServers:
+    shared-skills:
+      command: node
+      args:
+        - ./skills/shared/mcp-server/index.js
+      env:
+        NODE_ENV: production
+
+# Profile with native toolkit + MCP
+shared-skills:
+  provider: anthropic
+  processor: claude-sonnet-4-20250514
+  accelerator: claude-sonnet-4-20250514
+  toolkits:
+    - name: developer
+      requires: {}
+    - name: shared-skills
+      path: ~/.config/goose/toolkits/shared-skills.yaml
+  mcpServers:
+    shared-skills:
+      command: node
+      args:
+        - ./skills/shared/mcp-server/index.js
+
+# Minimal profile for quick tasks
+minimal:
+  provider: anthropic
+  processor: claude-sonnet-4-20250514
+  toolkits:
+    - name: developer
+  mcpServers:
+    shared-skills:
+      command: node
+      args:
+        - ./skills/shared/mcp-server/index.js
+
+# CI/CD focused profile
+cicd:
+  provider: anthropic
+  processor: claude-sonnet-4-20250514
+  toolkits:
+    - name: developer
+    - name: github
+  mcpServers:
+    shared-skills:
+      command: node
+      args:
+        - ./skills/shared/mcp-server/index.js

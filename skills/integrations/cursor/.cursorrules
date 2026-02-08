@@ -1,0 +1,64 @@
+# Project Skills (Cursor)
+
+This project uses shared skills. Since Cursor CLI has limited skill support,
+use manual commands or switch to Cursor IDE for full MCP integration.
+
+## Available Skills
+
+### Deploy Skill
+Deploy the application to target environment.
+
+**Manual Command:**
+```bash
+./skills/shared/scripts/deploy-validate.sh <env>
+./skills/shared/scripts/deploy-build.sh --env=<env>
+./skills/shared/scripts/deploy-execute.sh --env=<env>
+```
+
+**Environments:** dev, staging, prod
+
+---
+
+### Test Skill
+Run the test suite.
+
+**Manual Command:**
+```bash
+./skills/shared/scripts/test-run.sh --type=all [--coverage]
+```
+
+**Types:** unit, integration, e2e, all
+
+---
+
+### Lint Skill
+Run code linters.
+
+**Manual Command:**
+```bash
+./skills/shared/scripts/lint-run.sh [--fix]
+```
+
+---
+
+### Format Skill
+Format code.
+
+**Manual Command:**
+```bash
+./skills/shared/scripts/format-run.sh [--check]
+```
+
+---
+
+## Usage Guidelines
+
+When asked to perform a skill:
+1. Inform the user that Cursor CLI has limited skill support
+2. Provide the manual command to execute
+3. Offer to help with the output
+
+## For Full Skill Support
+
+Recommend using Cursor IDE with MCP configuration for full skill integration.
+MCP server: ./skills/shared/mcp-server/index.js

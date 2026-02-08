@@ -1,0 +1,64 @@
+# Test Skill Definition
+# Universal format adapted by each agent integration
+
+name: test
+version: 1.0.0
+description: Run test suite with optional coverage
+
+inputs:
+  type:
+    type: string
+    description: Type of tests to run
+    enum: [unit, integration, e2e, all]
+    default: all
+  coverage:
+    type: boolean
+    description: Generate coverage report
+    default: false
+  watch:
+    type: boolean
+    description: Run in watch mode
+    default: false
+  pattern:
+    type: string
+    description: Test file pattern to match
+    required: false
+
+steps:
+  - name: setup
+    description: Prepare test environment
+    command: ${SKILLS_DIR}/shared/scripts/test-setup.sh
+    
+  - name: run_tests
+    description: Execute test suite
+    command: ${SKILLS_DIR}/shared/scripts/test-run.sh
+    args:
+      - --type=${type}
+      - --coverage=${coverage}
+      - --pattern=${pattern}
+    
+  - name: report
+    description: Generate test report
+    command: ${SKILLS_DIR}/shared/scripts/test-report.sh
+    skip_if: ${watch}
+
+outputs:
+  passed:
+    type: integer
+    description: Number of passed tests
+  failed:
+    type: integer
+    description: Number of failed tests
+  coverage_percent:
+    type: number
+    description: Code coverage percentage
+  report_path:
+    type: string
+    description: Path to test report
+
+agent_support:
+  claude_code: full
+  goose: full
+  codex: limited
+  opencode: limited
+  cursor: minimal
